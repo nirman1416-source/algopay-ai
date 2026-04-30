@@ -28,6 +28,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [paying, setPaying] = useState(false);
 
+  // 🔐 CONNECT WALLET
   const connectWallet = async () => {
     try {
       const accounts = await peraWallet.connect();
@@ -37,6 +38,7 @@ export default function DashboardPage() {
     }
   };
 
+  // 💰 PAYMENT (FIXED SDK ISSUE HERE)
   const handlePay = async () => {
     if (!account) return alert("Connect wallet first");
 
@@ -46,19 +48,22 @@ export default function DashboardPage() {
       const params = await algodClient.getTransactionParams().do();
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        from: account,
-        to: account,
+        sender: account,      // ✅ FIXED
+        receiver: account,    // ✅ FIXED
         amount: 100000,
         suggestedParams: params,
       });
 
       const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
 
-      const signedTxn = await peraWallet.signTransaction([{ txn: encodedTxn }]);
+      const signedTxn = await peraWallet.signTransaction([
+        { txn: encodedTxn },
+      ]);
 
       const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
 
       setTxId(txId);
+
       await algosdk.waitForConfirmation(algodClient, txId, 4);
 
       setCredits((p) => p + 1);
@@ -72,29 +77,37 @@ export default function DashboardPage() {
     }
   };
 
+  // ⚡ GENERATE
   const generate = async () => {
     if (credits <= 0) return alert("No credits");
 
-    setLoading(true);
+    if (!prompt) return alert("Enter prompt");
 
-    const res = await fetch("/api/ai", {
-      method: "POST",
-      body: JSON.stringify({ prompt }),
-    });
+    try {
+      setLoading(true);
 
-    const data = await res.json();
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        body: JSON.stringify({ prompt }),
+      });
 
-    setResponse(data.result);
-    setCredits((p) => p - 1);
-    setUsageCount((p) => p + 1);
+      const data = await res.json();
 
-    setLoading(false);
+      setResponse(data.result);
+      setCredits((p) => p - 1);
+      setUsageCount((p) => p + 1);
+
+    } catch {
+      alert("Error generating response");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <main className="relative min-h-screen bg-[#0B0F1A] text-white flex overflow-hidden">
 
-      {/* 🔥 PREMIUM BACKGROUND */}
+      {/* BACKGROUND */}
       <div className="absolute w-[600px] h-[600px] bg-blue-500 opacity-20 blur-3xl rounded-full top-[-150px]" />
       <div className="absolute w-[500px] h-[500px] bg-purple-500 opacity-20 blur-3xl rounded-full bottom-[-150px] right-[-100px]" />
 
@@ -177,6 +190,7 @@ export default function DashboardPage() {
               <div className="flex gap-4">
                 <button
                   onClick={handlePay}
+                  disabled={!account || paying}
                   className="flex-1 bg-green-500 py-3 rounded-xl"
                 >
                   {paying ? "Processing..." : "💸 Buy Credit"}
@@ -184,6 +198,7 @@ export default function DashboardPage() {
 
                 <button
                   onClick={generate}
+                  disabled={credits <= 0 || loading}
                   className="flex-1 bg-blue-500 py-3 rounded-xl"
                 >
                   {loading ? "Generating..." : "⚡ Generate"}
@@ -202,7 +217,6 @@ export default function DashboardPage() {
         {/* PAYMENTS */}
         {activeTab === "payments" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-
             <h2 className="text-xl mb-4">Payments</h2>
 
             {txId && (
@@ -224,11 +238,9 @@ export default function DashboardPage() {
         {/* USAGE */}
         {activeTab === "usage" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-
             <h2 className="text-xl mb-4">Usage Analytics</h2>
 
             <div className="bg-white/5 p-6 rounded-xl">
-
               <div className="h-4 bg-gray-700 rounded">
                 <div
                   className="h-4 bg-blue-500 rounded"
@@ -237,7 +249,6 @@ export default function DashboardPage() {
               </div>
 
               <p className="mt-2">{usageCount} requests used</p>
-
             </div>
           </motion.div>
         )}
@@ -245,14 +256,12 @@ export default function DashboardPage() {
         {/* PROFILE */}
         {activeTab === "profile" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-
             <h2 className="text-xl mb-4">Profile</h2>
 
             <div className="bg-white/5 p-6 rounded-xl">
               <p>Email: {localStorage.getItem("user")}</p>
               <p>Wallet: {account || "Not connected"}</p>
             </div>
-
           </motion.div>
         )}
 
