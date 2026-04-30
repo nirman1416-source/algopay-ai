@@ -1,65 +1,86 @@
-import Image from "next/image";
+"use client";
+
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="relative min-h-screen bg-[#0B0F1A] text-white flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+
+      {/* BACKGROUND GLOW */}
+      <div className="absolute w-[500px] h-[500px] bg-blue-500 opacity-20 blur-3xl rounded-full top-[-100px]" />
+      <div className="absolute w-[400px] h-[400px] bg-green-500 opacity-20 blur-3xl rounded-full bottom-[-100px] right-[-100px]" />
+
+      {/* NAVBAR */}
+      <div className="absolute top-6 w-full max-w-6xl flex justify-between items-center px-6">
+        <h1 className="text-xl font-bold">⚡ AlgoPay</h1>
+        <button
+          onClick={() => router.push("/login")}
+          className="bg-gray-800 px-4 py-2 rounded-lg hover:bg-gray-700 transition"
+        >
+          Login
+        </button>
+      </div>
+
+      {/* HERO */}
+      <div className="z-10 max-w-3xl">
+
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
+          Pay-per-use AI with Algorand
+        </h1>
+
+        <p className="text-gray-400 text-lg mb-8">
+          Unlock premium AI responses using blockchain micropayments.  
+          No subscriptions. Only pay when you use.
+        </p>
+
+        {/* CTA BUTTONS */}
+        <div className="flex gap-4 justify-center">
+
+          <button
+            onClick={() => router.push("/login")}
+            className="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3 rounded-xl font-semibold hover:scale-[1.05] transition"
+          >
+            Get Started →
+          </button>
+
+          <button
+            className="bg-white/10 px-6 py-3 rounded-xl border border-white/20 hover:bg-white/20 transition"
+          >
+            Learn More
+          </button>
+
+        </div>
+
+      </div>
+
+      {/* FEATURES */}
+      <div className="z-10 grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 max-w-5xl">
+
+        <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+          ⚡ Instant Payments
+          <p className="text-gray-400 text-sm mt-2">
+            Powered by Algorand blockchain
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+          🔐 Secure Access
+          <p className="text-gray-400 text-sm mt-2">
+            On-chain verified usage
+          </p>
         </div>
-      </main>
-    </div>
+
+        <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+          💡 Pay-per-use
+          <p className="text-gray-400 text-sm mt-2">
+            No subscriptions, only usage-based billing
+          </p>
+        </div>
+
+      </div>
+
+    </main>
   );
 }
