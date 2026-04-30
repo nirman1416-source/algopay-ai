@@ -38,7 +38,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 💰 PAYMENT (FIXED SDK ISSUE HERE)
+  // 💰 PAYMENT (FINAL FIXED VERSION)
   const handlePay = async () => {
     if (!account) return alert("Connect wallet first");
 
@@ -48,19 +48,23 @@ export default function DashboardPage() {
       const params = await algodClient.getTransactionParams().do();
 
       const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: account,      // ✅ FIXED
-        receiver: account,    // ✅ FIXED
+        sender: account,
+        receiver: account,
         amount: 100000,
         suggestedParams: params,
       });
 
-      const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
-
+      // ✅ CORRECT PERA SIGNING FORMAT
       const signedTxn = await peraWallet.signTransaction([
-        { txn: encodedTxn },
+        {
+          txn,
+          signers: [account],
+        },
       ]);
 
-      const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
+      const { txId } = await algodClient
+        .sendRawTransaction(signedTxn[0])
+        .do();
 
       setTxId(txId);
 
@@ -80,7 +84,6 @@ export default function DashboardPage() {
   // ⚡ GENERATE
   const generate = async () => {
     if (credits <= 0) return alert("No credits");
-
     if (!prompt) return alert("Enter prompt");
 
     try {
@@ -259,7 +262,7 @@ export default function DashboardPage() {
             <h2 className="text-xl mb-4">Profile</h2>
 
             <div className="bg-white/5 p-6 rounded-xl">
-              <p>Email: {localStorage.getItem("user")}</p>
+              <p>Email: {typeof window !== "undefined" ? localStorage.getItem("user") : ""}</p>
               <p>Wallet: {account || "Not connected"}</p>
             </div>
           </motion.div>
