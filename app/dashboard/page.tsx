@@ -40,44 +40,47 @@ export default function DashboardPage() {
 
   // 💰 PAYMENT (FINAL FIXED)
   const handlePay = async () => {
-    if (!account) return alert("Connect wallet first");
+  if (!account) return alert("Connect wallet first");
 
-    try {
-      setPaying(true);
+  try {
+    setPaying(true);
 
-      const params = await algodClient.getTransactionParams().do();
+    const params = await algodClient.getTransactionParams().do();
 
-      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-        sender: account,
-        receiver: account,
-        amount: 100000,
-        suggestedParams: params,
-      });
+    const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+      sender: account,
+      receiver: account,
+      amount: 100000,
+      suggestedParams: params,
+    });
 
-      // ✅ Encode transaction (required for your Pera version)
-      const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+    // ✅ Encode transaction
+    const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
 
-      // ✅ Correct signing (v1 format)
-      const signedTxn = await peraWallet.signTransaction([encodedTxn]);
+    // ✅ FORCE TYPE FIX (important)
+    const signedTxn = await peraWallet.signTransaction(
+      [encodedTxn] as any
+    );
 
-      const { txId } = await algodClient
-        .sendRawTransaction(signedTxn)
-        .do();
+    const { txId } = await algodClient
+      .sendRawTransaction(signedTxn as Uint8Array)
+      .do();
 
-      setTxId(txId);
+    setTxId(txId);
 
-      await algosdk.waitForConfirmation(algodClient, txId, 4);
+    await algosdk.waitForConfirmation(algodClient, txId, 4);
 
-      setCredits((p) => p + 1);
-      setReceipt("ALGO-" + Math.floor(Math.random() * 100000));
+    setCredits((p) => p + 1);
+    setReceipt("ALGO-" + Math.floor(Math.random() * 100000));
 
-    } catch (err) {
-      console.error(err);
-      alert("Transaction failed");
-    } finally {
-      setPaying(false);
-    }
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Transaction failed");
+  } finally {
+    setPaying(false);
+  }
+};
+
 
   // ⚡ GENERATE
   const generate = async () => {
