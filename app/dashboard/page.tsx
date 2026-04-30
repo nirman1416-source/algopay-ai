@@ -38,51 +38,54 @@ export default function DashboardPage() {
     }
   };
 
-  // 💰 PAYMENT (FINAL FIXED)
+  // 💰 PAYMENT (FINAL FIXED VERSION)
   const handlePay = async () => {
-  if (!account) return alert("Connect wallet first");
+    if (!account) return alert("Connect wallet first");
 
-  try {
-    setPaying(true);
+    try {
+      setPaying(true);
 
-    const params = await algodClient.getTransactionParams().do();
+      const params = await algodClient.getTransactionParams().do();
 
-    const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      sender: account,
-      receiver: account,
-      amount: 100000,
-      suggestedParams: params,
-    });
+      const txn = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+        sender: account,
+        receiver: account,
+        amount: 100000,
+        suggestedParams: params,
+      });
 
-    // ✅ Encode transaction
-    const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+      // Encode txn (required for your Pera SDK)
+      const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
 
-    // ✅ FORCE TYPE FIX (important)
-    const signedTxn = await peraWallet.signTransaction(
-      [encodedTxn] as any
-    );
+      // Sign txn (force compatible)
+      const signedTxn = await peraWallet.signTransaction(
+        [encodedTxn] as any
+      );
 
-    const { txId } = await algodClient
-      .sendRawTransaction(signedTxn as Uint8Array)
-      .do();
+      // Send txn
+      const txResponse = await algodClient
+        .sendRawTransaction(signedTxn as Uint8Array)
+        .do();
 
-    setTxId(txId);
+      const txId = txResponse.txid; // ✅ correct field
 
-    await algosdk.waitForConfirmation(algodClient, txId, 4);
+      setTxId(txId);
 
-    setCredits((p) => p + 1);
-    setReceipt("ALGO-" + Math.floor(Math.random() * 100000));
+      await algosdk.waitForConfirmation(algodClient, txId, 4);
 
-  } catch (err) {
-    console.error(err);
-    alert("Transaction failed");
-  } finally {
-    setPaying(false);
-  }
-};
+      // Update UI state
+      setCredits((p) => p + 1);
+      setReceipt("ALGO-" + Math.floor(Math.random() * 100000));
 
+    } catch (err) {
+      console.error(err);
+      alert("Transaction failed");
+    } finally {
+      setPaying(false);
+    }
+  };
 
-  // ⚡ GENERATE
+  // ⚡ GENERATE AI
   const generate = async () => {
     if (credits <= 0) return alert("No credits");
     if (!prompt) return alert("Enter prompt");
@@ -111,7 +114,7 @@ export default function DashboardPage() {
   return (
     <main className="relative min-h-screen bg-[#0B0F1A] text-white flex overflow-hidden">
 
-      {/* BACKGROUND */}
+      {/* BACKGROUND GLOW */}
       <div className="absolute w-[600px] h-[600px] bg-blue-500 opacity-20 blur-3xl rounded-full top-[-150px]" />
       <div className="absolute w-[500px] h-[500px] bg-purple-500 opacity-20 blur-3xl rounded-full bottom-[-150px] right-[-100px]" />
 
@@ -174,7 +177,6 @@ export default function DashboardPage() {
         {/* AI PAGE */}
         {activeTab === "ai" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-white/5 p-4 rounded-xl">
                 💰 Credits: {credits}
