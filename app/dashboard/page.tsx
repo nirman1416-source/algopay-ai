@@ -38,7 +38,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 💰 PAYMENT (FINAL FIXED VERSION)
+  // 💰 PAYMENT (FINAL FIXED)
   const handlePay = async () => {
     if (!account) return alert("Connect wallet first");
 
@@ -54,16 +54,14 @@ export default function DashboardPage() {
         suggestedParams: params,
       });
 
-      // ✅ CORRECT PERA SIGNING FORMAT
-      const signedTxn = await peraWallet.signTransaction([
-        {
-          txn,
-          signers: [account],
-        },
-      ]);
+      // ✅ Encode transaction (required for your Pera version)
+      const encodedTxn = algosdk.encodeUnsignedTransaction(txn);
+
+      // ✅ Correct signing (v1 format)
+      const signedTxn = await peraWallet.signTransaction([encodedTxn]);
 
       const { txId } = await algodClient
-        .sendRawTransaction(signedTxn[0])
+        .sendRawTransaction(signedTxn)
         .do();
 
       setTxId(txId);
@@ -146,7 +144,6 @@ export default function DashboardPage() {
 
         {/* HEADER */}
         <div className="flex justify-between items-center mb-8">
-
           <h1 className="text-3xl font-bold">Dashboard</h1>
 
           <div className="flex gap-3">
@@ -159,7 +156,9 @@ export default function DashboardPage() {
 
             <button
               onClick={() => {
-                localStorage.removeItem("user");
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("user");
+                }
                 router.push("/login");
               }}
               className="bg-red-500 px-4 py-2 rounded-lg"
@@ -224,10 +223,11 @@ export default function DashboardPage() {
 
             {txId && (
               <div className="bg-white/5 p-4 rounded-xl">
-                <p>{txId}</p>
+                <p className="break-all">{txId}</p>
                 <a
                   href={`https://lora.algokit.io/testnet/transaction/${txId}`}
-                  className="text-blue-400"
+                  className="text-blue-400 underline"
+                  target="_blank"
                 >
                   View Transaction ↗
                 </a>
@@ -250,7 +250,6 @@ export default function DashboardPage() {
                   style={{ width: `${usageCount * 20}px` }}
                 />
               </div>
-
               <p className="mt-2">{usageCount} requests used</p>
             </div>
           </motion.div>
@@ -262,7 +261,12 @@ export default function DashboardPage() {
             <h2 className="text-xl mb-4">Profile</h2>
 
             <div className="bg-white/5 p-6 rounded-xl">
-              <p>Email: {typeof window !== "undefined" ? localStorage.getItem("user") : ""}</p>
+              <p>
+                Email:{" "}
+                {typeof window !== "undefined"
+                  ? localStorage.getItem("user")
+                  : ""}
+              </p>
               <p>Wallet: {account || "Not connected"}</p>
             </div>
           </motion.div>
